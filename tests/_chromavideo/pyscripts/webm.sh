@@ -1,0 +1,1 @@
+ffmpeg -b 1500k -minrate 1500k -maxrate 1500k -bufsize 1235k -i $1.mov -r 24 -s $2 $1.webm

@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>three.js - webgl</title>
+		<meta charset="utf-8">
+		<style type="text/css">
+			body {
+				background:#fff;
+				padding:0;
+				margin:0;
+				font-weight: bold;
+				overflow:hidden;
+			}
+		</style>
+	</head>
+
+	<body>
+		<script type="text/javascript" src="js/Three.js"></script>
+		<script type="text/javascript" src="js/TrailShader.js"></script>
+		<script type="text/javascript">
+		
+			var container, stats;
+
+			var camera, scene, renderer;
+
+			var mouseX = 0, mouseY = 0;
+
+			var windowHalfX = window.innerWidth / 2;
+			var windowHalfY = window.innerHeight / 2;
+
+			document.addEventListener( 'mousemove', onDocumentMouseMove, false );
+
+			var markTexture = THREE.ImageUtils.loadTexture( "assets/trailMarkTexture.jpg" );
+
+			var loader = new THREE.JSONLoader();
+			loader.load( { model: "assets/Prairie.Ground.js", callback: init } );
+
+			function init( model ) {
+
+				// scene and camera
+
+				scene = new THREE.Scene();
+				scene.fog = new THREE.FogExp2( 0xffffff, 0.00030 );
+				scene.fog.color.setHSV( 0.6, 0.1235, 1 );
+				
+				camera = new THREE.Camera( 60, window.innerWidth / window.innerHeight, 1,  10000 );
+				camera.position.z = 100;
+				camera.position.y = 100;
+
+
+				// renderer
+
+				renderer = new THREE.WebGLRenderer( { antialias: false } );
+				renderer.setClearColorHex( 0x222222, 1 );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+
+				container = document.createElement( 'div' );
+				document.body.appendChild( container );
+				container.appendChild( renderer.domElement );
+
+
+				// world
+
+				var meshA = new THREE.Mesh( model, new THREE.MeshFaceMaterial() );
+				meshA.rotation.x = -0.5 * Math.PI;
+				meshA.position.set( -1000, 0, 0 );
+				scene.addChild( meshA );
+
+				// setup trail shader
+
+				ROME.TrailShaderUtils.setMaterials( [ meshA ], 1024, markTexture, renderer );
+
+
+				// lights				
+
+				var ambient = new THREE.AmbientLight( 0x221100 );
+				ambient.color.setHSV( 0, 0, 0.3 );
+				scene.addLight( ambient );
+
+				var directionalLight1 = new THREE.DirectionalLight( 0xffeedd );	
+				directionalLight1.position.set( 0.30068100380721313,  0.23859030453344973,  0.9233989389923093 );
+				directionalLight1.color.setHSV( 0, 0, 0.9588 );
+				scene.addLight( directionalLight1 );
+			
+				var directionalLight2 = new THREE.DirectionalLight( 0xffeedd );	
+				directionalLight2.position.set( -0.4535568600884794,  0.8775825618903728,  -0.1553545034191468 );
+				directionalLight2.color.setHSV( 0, 0, 0.1 );						
+				scene.addLight( directionalLight2 );
+
+				setInterval( loop, 1000 / 60 );
+			}
+
+			var t = 0;
+			var r = 0;
+
+			function loop() {
+
+				var rad = ( Math.sin( t * 0.1 ) * 0.3 + 0.7 );
+
+				ROME.TrailShaderUtils.updateLava();
+				ROME.TrailShaderUtils.setMarkAtWorldPosition( ( Math.sin( t ) * rad ) * 200, ( Math.cos( t ) * rad ) * 200 );
+				
+				t += 0.03;
+
+				camera.position.x = Math.sin( r ) * 150; 
+				camera.position.z = Math.cos( r ) * 150;
+				camera.position.y -= mouseY * 5;
+
+				r += mouseX * 0.03;
+
+
+				renderer.render( scene, camera );
+				
+			}
+
+			function onDocumentMouseMove(event) {
+
+				mouseX = ( event.clientX - windowHalfX ) / window.innerWidth;
+				mouseY = ( event.clientY - windowHalfY ) / window.innerHeight;
+
+			}
+
+
+			function log( text ) {
+
+				var e = document.getElementById("log");
+				e.innerHTML = text + "<br/>" + e.innerHTML;
+
+			}
+		</script>
+
+	</body>
+</html>
